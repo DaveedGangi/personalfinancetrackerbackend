@@ -1,3 +1,8 @@
+const dotenv=require("dotenv");
+
+dotenv.config();
+
+
 const express=require("express");
 const cors=require("cors");
 
@@ -10,9 +15,7 @@ const runEmailScheduler=require("./cron/emailScheduler.js");
 const userRoutes= require('./routes/userRoutes');
 const transactions=require("./routes/transactionRoutes");
 
-const dotenv=require("dotenv");
 
-dotenv.config();
 
 connectDb();
 
