@@ -14,11 +14,11 @@ const addTransaction= async(req,res)=>{
     //const userId=req.auth.userId; // clerk auto extracts the userId 
     const {userId} =req.auth();
 
-    const{amount,category,description,note,date}=req.body;
+    const{amount,type,category,description,note,date}=req.body;
 
     try{
 
-        const transactions=new Transactions({userId,amount,category,description,note,date:date || new Date()});
+        const transactions=new Transactions({userId,amount,type,category,description,note,date:date || new Date()});
         await transactions.save();
         res.status(200).json({message:"Transaction saved successfully"});
        

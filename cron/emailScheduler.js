@@ -52,11 +52,11 @@ const runEmailScheduler = () => {
         }
 
         const totalIncome = transactions
-          .filter((txn) => txn.category === "income")
+          .filter((txn) => txn.type === "income")
           .reduce((sum, txn) => sum + txn.amount, 0);
 
         const totalExpense = transactions
-          .filter((txn) => txn.category === "expense")
+          .filter((txn) => txn.type === "expense")
           .reduce((sum, txn) => sum + txn.amount, 0);
 
         const html = `
@@ -82,7 +82,9 @@ const runEmailScheduler = () => {
     } catch (err) {
       console.error("❌ Email scheduler error:", err);
     }
-  });
+  }, {
+  timezone: "Asia/Kolkata"
+});
 };
 
 
