@@ -1,29 +1,25 @@
+const moment = require("moment-timezone");
 
-function getStartOfDay(){
-    let now=new Date();
-    return new Date(now.getFullYear(),now.getMonth(),now.getDate(),0,0,0);
+const getStartOfDay = () => {
+  return moment().tz("Asia/Kolkata").startOf("day").toDate();
+};
 
-    
-}
+const getEndOfDay = () => {
+  return moment().tz("Asia/Kolkata").endOf("day").toDate();
+};
 
-function getEndOfDay(){
-    let now=new Date();
-    return new Date(now.getFullYear(),now.getMonth(),now.getDate(),23,59,59);
-}
+const getStartOfMonth = () => {
+  return moment().tz("Asia/Kolkata").startOf("month").toDate();
+};
 
-function getStartOfMonth(){
+const isLastDayOfMonth = () => {
+  const now = moment().tz("Asia/Kolkata");
+  return now.date() === now.daysInMonth();
+};
 
-    let now=new Date();
-    return new Date(now.getFullYear(),now.getMonth(),1,0,0,0);
-}
-
-function isLastDayOfMonth(){
-    let today=new Date();
-    let tomorrow=new Date(today);
-    tomorrow.setDate(today.getDate()+1);
-    return tomorrow.getDate()===1;
-
-
-}
-
-module.exports={getStartOfDay,getEndOfDay,getStartOfMonth,isLastDayOfMonth};
+module.exports = {
+  getStartOfDay,
+  getEndOfDay,
+  getStartOfMonth,
+  isLastDayOfMonth,
+};
