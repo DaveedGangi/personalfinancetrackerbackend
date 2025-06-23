@@ -12,7 +12,7 @@ const cors=require("cors");
 
 const connectDb=require("./config/db.js");
 
-const runEmailScheduler=require("./cron/emailScheduler.js");
+// const runEmailScheduler=require("./cron/emailScheduler.js");
 
 const userRoutes= require('./routes/userRoutes');
 const transactions=require("./routes/transactionRoutes");
@@ -29,7 +29,7 @@ app.use(cors());
 
 
 
-runEmailScheduler();
+//runEmailScheduler();
 
 //Routes 
 
