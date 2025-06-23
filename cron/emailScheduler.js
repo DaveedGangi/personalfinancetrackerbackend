@@ -14,10 +14,8 @@ const runEmailScheduler = () => {
 
 
   // Runs every day at 10 PM IST
-  cron.schedule("* * * * *", async () => {
-    console.log("🔄 Cron job triggered");
-    console.log("⏰ Cron running:", new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }));
-
+  cron.schedule("0 22 * * *", async () => {
+ 
 
     try {
       const users = await User.find({ frequency: { $ne: "none" } });
@@ -127,6 +125,6 @@ const runEmailScheduler = () => {
   });
 };
 
-runEmailScheduler();
+
 
 module.exports = runEmailScheduler;
