@@ -1,8 +1,6 @@
-const cron = require("node-cron");
 const User = require("../models/User.js");
 const Transaction = require("../models/Transaction.js");
 const sendEmail = require("../utils/emailSender.js");
-
 const {
   getStartOfDay,
   getEndOfDay,
@@ -10,66 +8,56 @@ const {
   isLastDayOfMonth,
 } = require("../utils/dateUtils.js");
 
-const runEmailScheduler = () => {
+const runEmailJob = async () => {
+  const users = await User.find({ frequency: { $ne: "none" } });
+  console.log(`👥 Found ${users.length} user(s) with active frequency`);
 
+  for (const user of users) {
+    let startDate, endDate;
 
-  // Runs every day at 10 PM IST
-  cron.schedule("* * * * *", async () => {
-    console.log("🔄 Cron job triggered");
-    console.log("⏰ Cron running:", new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }));
+    if (user.frequency === "daily") {
+      startDate = getStartOfDay();
+      endDate = getEndOfDay();
+    } else if (user.frequency === "monthly" && isLastDayOfMonth()) {
+      startDate = getStartOfMonth();
+      endDate = getEndOfDay();
+    } else {
+      continue;
+    }
 
+    const transactions = await Transaction.find({
+      userId: user.clerkId,
+      date: { $gte: startDate, $lte: endDate },
+    });
 
-    try {
-      const users = await User.find({ frequency: { $ne: "none" } });
-      console.log(`👥 Found ${users.length} user(s) with active frequency`);
+    if (transactions.length === 0) {
+      continue;
+    }
 
-      for (const user of users) {
-        let startDate, endDate;
+    const formatAmount = (amt) =>
+      amt.toLocaleString("en-IN", {
+        style: "currency",
+        currency: "INR",
+        maximumFractionDigits: 0,
+      });
 
-        if (user.frequency === "daily") {
-          startDate = getStartOfDay();
-          endDate = getEndOfDay();
-          console.log(`📅 Preparing DAILY report for ${user.email}`);
-        } else if (user.frequency === "monthly" && isLastDayOfMonth()) {
-          startDate = getStartOfMonth();
-          endDate = getEndOfDay();
-          console.log(`📆 Preparing MONTHLY report for ${user.email}`);
-        } else {
-          console.log(`⏭️ Skipping ${user.email} - No matching schedule`);
-          continue;
-        }
+    const totalIncomeRaw = transactions
+      .filter((txn) => txn.type === "income")
+      .reduce((sum, txn) => sum + txn.amount, 0);
+    const totalExpenseRaw = transactions
+      .filter((txn) => txn.type === "expense")
+      .reduce((sum, txn) => sum + txn.amount, 0);
 
-        const transactions = await Transaction.find({
-          userId: user.clerkId,
-          date: { $gte: startDate, $lte: endDate },
-        });
+    const totalIncome = formatAmount(totalIncomeRaw);
+    const totalExpense = formatAmount(totalExpenseRaw);
 
-        if (transactions.length === 0) {
-          console.log(`📭 No transactions for ${user.email}, skipping email.`);
-          continue;
-        }
+    const reportDate = new Date().toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
 
-        const formatAmount = (amt) =>
-          amt.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
-
-        const totalIncomeRaw = transactions
-          .filter((txn) => txn.type === "income")
-          .reduce((sum, txn) => sum + txn.amount, 0);
-
-        const totalExpenseRaw = transactions
-          .filter((txn) => txn.type === "expense")
-          .reduce((sum, txn) => sum + txn.amount, 0);
-
-        const totalIncome = formatAmount(totalIncomeRaw);
-        const totalExpense = formatAmount(totalExpenseRaw);
-
-        const reportDate = new Date().toLocaleDateString("en-IN", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        });
-
-        const html = `
+   const html = `
           <div style="font-family: 'Segoe UI', sans-serif; color: #1c1c1c; max-width: 600px; margin: 0 auto; padding: 16px; background: #f4f7fa;">
             <div style="background: #ffffff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">
               <p style="text-align: right; font-size: 13px; color: #555;">📅 ${reportDate}</p>
@@ -112,21 +100,9 @@ const runEmailScheduler = () => {
           </div>
         `;
 
-        await sendEmail(
-          user.email,
-          `Your ${user.frequency} transaction report!`,
-          html
-        );
-        console.log(`✅ Email sent to ${user.email}`);
-      }
-    } catch (err) {
-      console.error("❌ Email scheduler error:", err);
-    }
-  }, {
-    timezone: "Asia/Kolkata",
-  });
+    await sendEmail(user.email, `Your ${user.frequency} transaction report!`, html);
+    console.log(`✅ Email sent to ${user.email}`);
+  }
 };
 
-runEmailScheduler();
-
-module.exports = runEmailScheduler;
+module.exports = runEmailJob;
