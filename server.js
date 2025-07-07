@@ -46,11 +46,18 @@ app.use("/api",transactions);
 
 app.get("/api/trigger-email-job", async (req, res) => {
   try {
-    await runEmailJob(); // this runs your existing logic
-    res.status(200).send("✅ Email job executed successfully");
+      // ✅ Respond immediately
+  res.status(200).send("🚀 Email job started");
+
+  // 🔄 Continue job after response
+  runEmailJob()
+    .then(() => console.log("✅ Email job completed"))
+    .catch((err) => console.error("❌ Email job failed", err))
+
+   
   } catch (err) {
     console.error("❌ Manual job trigger failed", err);
-    res.status(500).send("❌ Failed to run email job");
+   
   }
 });
 
