@@ -10,7 +10,7 @@ const {
 
 const runEmailJob = async () => {
   const users = await User.find({ frequency: { $ne: "none" } });
-  console.log(`👥 Found ${users.length} user(s) with active frequency`);
+  //console.log(`👥 Found ${users.length} user(s) with active frequency`);
 
   for (const user of users) {
     let startDate, endDate;
@@ -101,7 +101,7 @@ const runEmailJob = async () => {
         `;
 
     await sendEmail(user.email, `Your ${user.frequency} transaction report!`, html);
-    console.log(`✅ Email sent to ${user.email}`);
+    //console.log(`✅ Email sent to ${user.email}`);
   }
 };
 
